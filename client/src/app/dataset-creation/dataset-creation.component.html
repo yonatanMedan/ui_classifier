@@ -1,0 +1,6 @@
+<button (click)="toggleAddClassModal()">Create Class</button>
+<div *ngIf="addClassModal">
+  <input type="text" #newModalName>
+  <button (click)="setClass(newModalName)">Set Class</button>
+</div>
+{{classes | json}}
