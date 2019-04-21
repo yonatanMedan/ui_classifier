@@ -3,4 +3,12 @@
   <input type="text" #newModalName>
   <button (click)="setClass(newModalName)">Set Class</button>
 </div>
-{{classes | json}}
+
+<div *ngFor="let class of classList">
+  <div>Class Name:{{class}}</div>
+  <div>Number Of Images: {{classes[class].length}}</div>
+  <label>Upload Image</label>
+  <input type="file" multiple directory (change)="handleFiles($event)" >
+  <button (click)="removeClass(class)">remove class</button>
+</div>
+<!--{{classes | json}}-->
