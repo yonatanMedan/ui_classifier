@@ -1,11 +1,30 @@
 <div class="container">
-  <h1 class="title">
-    Create A Top Notch Classifier
-  </h1>
-  <button (click)="addClassDir()">Add Class Directory</button>
-  {{classDirs| json}}
+  <div class="jumbotron">
+    <div class="row">
+      <div class="col-12">
+        <h1 class="title">
+          Create A Top Notch Classifier
+        </h1>
+      </div>
 
-  <button (click)="train()">Train</button>
+    </div>
+    <div class="row">
+      <div class="col-6">
+        <button (click)="addClassDir()">Add Class Directory</button>
 
+      </div>
+      <div class="col-6">
+        <button (click)="train()">Train</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12"></div>
+      {{classDirs| json}}
+      <div class="train" *ngIf="training">
+        training
+      </div>
+
+    </div>
+  </div>
 </div>
 
