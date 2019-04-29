@@ -10,7 +10,7 @@ async def train(request,ws):
     data = await ws.recv()
     print(data)
     dataset = create_dataset(data)
-    print(dataset)
+    dataset.show_batch(rows=3, figsize=(7, 8))
     await ws.send("dataset created")
 
 if __name__ == '__main__':
