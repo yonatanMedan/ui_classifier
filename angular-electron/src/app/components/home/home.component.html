@@ -10,7 +10,7 @@
     </div>
     <div class="row">
       <div class="col-6">
-        <button (click)="addClassDir()">Add Class Directory</button>
+        <button (click)="addClassDir()">Choose Data Directory</button>
 
       </div>
       <div class="col-6">
@@ -19,7 +19,7 @@
     </div>
     <div class="row">
       <div class="col-12"></div>
-      {{classDirs| json}}
+      {{classesDir}}
       <div class="train" *ngIf="training">
         training
       </div>

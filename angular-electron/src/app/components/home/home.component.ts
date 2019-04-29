@@ -9,7 +9,7 @@ import {SanicService} from "../../providers/sanic.service";
 })
 export class HomeComponent implements OnInit {
 
-  classDirs = [];
+  classesDir;
   training=false;
   constructor(public electronService: ElectronService,public sanic:SanicService) { }
   addClassDir(){
@@ -17,13 +17,13 @@ export class HomeComponent implements OnInit {
     var path = dialog.showOpenDialog({
       properties:["openDirectory"]
     })
-    this.classDirs.push(...path)
+    this.classesDir  = path[0]
   }
   train(){
     this.training=true;
     let ws = this.sanic.connect();
     ws.on('open', ()=> {
-      ws.send(JSON.stringify(this.classDirs));
+      ws.send(this.classesDir);
     });
 
     ws.on('message', (data) => {
