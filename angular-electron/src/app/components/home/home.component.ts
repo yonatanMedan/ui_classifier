@@ -21,9 +21,14 @@ export class HomeComponent implements OnInit {
   }
   train(){
     this.training=true;
-    this.sanic.train(this.classDirs).then(res=>{
-      console.log(res)
-    })
+    let ws = this.sanic.connect();
+    ws.on('open', function open() {
+      ws.send(JSON.stringify(this.classDirs));
+    });
+
+    ws.on('message', function incoming(data) {
+      console.log(data);
+    });
     // console.log()
     //   .then(res=>{
     //   alert(res)

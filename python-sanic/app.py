@@ -1,15 +1,14 @@
 from sanic import Sanic
 from sanic.response import json
+from sanic.websocket import WebSocketProtocol
 
 app = Sanic()
 
-@app.route('/')
-async def test(request):
-    return json({'hello': 'world'})
-
-@app.route('/train',methods=["POST",])
-async def train(request):
-  return json({"req_body":request.json})
+@app.websocket('/train')
+async def train(request,ws):
+  while True:
+    data = await ws.recv()
+    await ws.send(data)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host="0.0.0.0", port=8000, protocol=WebSocketProtocol)

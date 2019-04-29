@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
-let request = require('request-promise')
+
+const WebSocket = require('ws');
+
+
+
 @Injectable()
 export class SanicService {
 
   constructor() { }
-  train(directories){
-    console.log(directories)
-    return request.get("http://localhost:8000/")
+  connect(){
+    const ws = new WebSocket('ws://localhost:8000/train');
+    return ws
+
   }
 }
