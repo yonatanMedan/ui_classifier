@@ -8,6 +8,7 @@ app = Sanic()
 async def train(request,ws):
   while True:
     data = await ws.recv()
+    print(data)
     await ws.send(data)
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-const WebSocket = require('ws');
+const WebSocket = window.require('ws');
 
 
 
