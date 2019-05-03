@@ -23,11 +23,13 @@ export class HomeComponent implements OnInit {
     this.training=true;
     let ws = this.sanic.connect();
     ws.on('open', ()=> {
-      ws.send(this.classesDir);
+      ws.send(JSON.stringify({event_type:"dataset_folder",data:this.classesDir}));
     });
 
     ws.on('message', (data) => {
+      debugger;
       console.log(data);
+      alert(data)
     });
     // console.log()
     //   .then(res=>{

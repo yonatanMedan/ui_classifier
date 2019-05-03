@@ -7,6 +7,7 @@ chardet==3.0.4
 cycler==0.10.0
 cymem==2.0.2
 dataclasses==0.6
+eventemitter==0.2.0
 fastai==1.0.52
 fastprogress==0.1.21
 httptools==0.0.13
