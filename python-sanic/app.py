@@ -2,12 +2,15 @@ from sanic import Sanic
 from sanic.response import json
 import json as JSON
 from sanic.websocket import WebSocketProtocol
-from classifier.dataset import create_dataset
-from classifier.train import get_model
+# from classifier.dataset import create_dataset
+# from classifier.train import get_model
 from rx.subjects import Subject
 from rx.concurrency.mainloopscheduler import AsyncIOScheduler
+from rx import operators as ops
+from rx import from_future
 from functools import partial
 from WSEvents.WSEventEmitter import  WSEventEmitter
+from classifier.Learner import Learner
 import asyncio
 app = Sanic()
 
@@ -20,7 +23,12 @@ async def train(request,ws):
   scheduler = AsyncIOScheduler()
   emitter = WSEventEmitter(ws)
   dataSetFolderSubject = emitter.get_subject("dataset_folder")
-  dataSetFolderSubject.subscribe(lambda folder:asyncio.ensure_future(handleFolder(emitter,folder)),scheduler=scheduler)
+  dataSetFolderSubject.pipe(
+    ops.flat_map(
+      lambda folder:
+        from_future(asyncio.create_task(handleFolder(emitter,folder)))
+    )
+  ).subscribe(lambda x: print("hello"),scheduler=scheduler)
   await emitter.start_event_loop()
 
   #while True:
