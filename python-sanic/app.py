@@ -15,18 +15,52 @@ import asyncio
 app = Sanic()
 
 async def handleFolder(emitter,folder):
-  print("folder event")
-  return await emitter.ws.send("dataset created")
+  learner = Learner.from_folder(folder)
+  await emitter.ws.send("dataset created")
+  return learner
 
+async def train_stage_1(emitter,learner:Learner):
+  learner.train_start(1)
+  await emitter.ws.send("train_stage_1")
+  return learner
+
+async def train_stage_2(emitter,learner:Learner):
+  learner.train_unfreezed(1)
+  await emitter.ws.send("train_stage_2")
+  return learner
+
+
+def to_observable(corutin):
+  return from_future(asyncio.create_task(corutin))
 @app.websocket('/train')
 async def train(request,ws):
+  contex = {}
   scheduler = AsyncIOScheduler()
   emitter = WSEventEmitter(ws)
   dataSetFolderSubject = emitter.get_subject("dataset_folder")
+  trainFirstStage = emitter.get_subject("train_stage_1")
+  trainUnfreezed = emitter.get_subject("train_unfreezed")
+
   dataSetFolderSubject.pipe(
     ops.flat_map(
       lambda folder:
-        from_future(asyncio.create_task(handleFolder(emitter,folder)))
+        to_observable(handleFolder(emitter,folder))
+    ),
+    ops.do_action(lambda learner:contex.__setitem__("learner",learner)),
+    ops.flat_map(lambda event:
+        trainFirstStage
+    ),
+    ops.flat_map(
+      lambda event:
+        to_observable(train_stage_1(emitter,contex["learner"]))
+    ),
+    ops.flat_map(
+      lambda learner:
+        trainUnfreezed
+    ),
+    ops.flat_map(
+      lambda event:
+        to_observable(train_stage_2(emitter,contex["learner"]))
     )
   ).subscribe(lambda x: print("hello"),scheduler=scheduler)
   await emitter.start_event_loop()

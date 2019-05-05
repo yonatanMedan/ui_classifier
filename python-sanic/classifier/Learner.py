@@ -1,6 +1,6 @@
 
-from train import get_learner
-from dataset import create_data_bunch
+from .train import get_learner
+from .dataset import create_data_bunch
 from fastai.vision import ImageDataBunch
 class Learner:
     def __init__(self,dataBunch:ImageDataBunch,get_learner_func=None):
