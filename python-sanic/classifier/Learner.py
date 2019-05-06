@@ -16,7 +16,7 @@ class Learner:
         return cls(dataBunch)
 
     def train_start(self,n=1):
-        self.learner.freeze(-1)
+        self.learner.freeze()
         self.learner.fit_one_cycle(n)
         self.save('stage1')
 

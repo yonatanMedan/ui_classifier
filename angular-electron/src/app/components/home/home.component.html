@@ -14,7 +14,7 @@
 
       </div>
       <div class="col-6">
-        <button (click)="train()">Load Dataset</button>
+        <button (click)="train_1()" *ngIf="dataSetCreated">Train Stage 1 (Freezed layers)</button>
       </div>
     </div>
     <div class="row">

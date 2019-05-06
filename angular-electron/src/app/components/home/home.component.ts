@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {ElectronService} from '../../providers/electron.service';
-import {SanicService, WSEvent} from '../../providers/sanic.service';
+import {SanicService} from '../../providers/sanic.service';
+import {AppEvent, EventSubjects} from '../../providers/EventSubjects';
 import { Subject } from 'rxjs';
 const { mergeMap }  = window.require('rxjs/operators');
 
@@ -13,21 +14,23 @@ export class HomeComponent implements OnInit {
 
   classesDir: string;
   training = false;
-  classDirChangeSubject = new Subject();
-  datasetCreatedDataSet = new Subject();
+  componetSubjects = {};
+  dataSetCreated=false;
+  UIEvents = new EventSubjects();
+  train_ops = {};
   ws;
   constructor(public electronService: ElectronService, public sanic: SanicService) { }
   addClassDir() {
-    let {dialog} = this.electronService.remote;
-    let path = dialog.showOpenDialog({
+    const {dialog} = this.electronService.remote;
+    const path = dialog.showOpenDialog({
       properties: ['openDirectory']
     });
     this.classesDir  = path[0];
-    this.classDirChangeSubject.next(path[0]);
+    this.UIEvents.emitEvent(new AppEvent('classDirChange', path[0]));
   }
-  train() {
+  train_1() {
     this.training = true;
-
+    this.UIEvents.emitEvent(new AppEvent('train_stage_1','train_stage_1'));
 
   }
   // connect(){
@@ -39,19 +42,27 @@ export class HomeComponent implements OnInit {
   //   });
   // }
   initPipeLine() {
-    this.classDirChangeSubject.pipe(
+    this.UIEvents.getSubject('classDirChange').pipe(
       mergeMap((folder: string) => {
-        this.sanic.sendEvent(new WSEvent('dataset_folder', folder));
+        this.sanic.sendEvent(new AppEvent('dataset_folder', folder));
         return this.sanic.getSubject('dataset_created');
+      }),
+      mergeMap(() => {
+        this.dataSetCreated = true;
+        return this.UIEvents.getSubject('train_stage_1');
+      }),
+      mergeMap(() => {
+        this.sanic.sendEvent(new AppEvent('train_stage_1', this.train_ops));
+        return this.sanic.getSubject('train_stage_1')
       })
-    ).subscribe(event => {
-      console.log(event);
-      alert(event);
+    ).subscribe(data => {
+      console.log(data);
+      alert(data);
     });
 
   }
   ngOnInit() {
-    this.initPipeLine()
+    this.initPipeLine();
   }
 
 }

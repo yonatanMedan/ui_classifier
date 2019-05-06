@@ -16,12 +16,12 @@ app = Sanic()
 async def handleFolder(emitter,folder):
   learner = Learner.from_folder(folder)
   print("dataset_created")
-  await emitter.send("dataset_created","None")
+  await emitter.send("dataset_created","dataset_created")
   return learner
 
 async def train_stage_1(emitter,learner:Learner):
   learner.train_start(1)
-  await emitter.send("train_stage_1")
+  await emitter.send("train_stage_1","train stage 1")
   return learner
 
 async def train_stage_2(emitter,learner:Learner):

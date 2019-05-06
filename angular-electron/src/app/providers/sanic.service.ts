@@ -5,20 +5,15 @@ import { Observable, Subject } from 'rxjs';
 
 import {map,filter} from 'rxjs/operators';
 import {webSocket} from 'rxjs/webSocket';
-export class WSEvent {
-  constructor(event_type: string, data: any) {
-    this.event_type = event_type;
-    this.data = data;
-  }
-  event_type: string;
-  data: any;
-}
+import {AppEvent, EventSubjects} from "./EventSubjects"
+
 @Injectable()
-export class SanicService {
+export class SanicService extends EventSubjects {
   eventSubjects = {};
   constructor() {
+    super();
     this.ws = webSocket('ws://localhost:8000/train');
-    this.ws.subscribe((event: WSEvent) => {
+    this.ws.subscribe((event: AppEvent) => {
       this.emitEvent(event);
     }, error => {
       console.log(error);
@@ -28,20 +23,7 @@ export class SanicService {
   parseEvent(event: string) {
     return JSON.parse(event);
   }
-  createIfNotExist(event_type) {
-    if (!(event_type in this.eventSubjects)) {
-      this.eventSubjects[event_type] = new Subject();
-    }
-  }
-  emitEvent(event: WSEvent) {
-    this.createIfNotExist(event.event_type);
-    this.eventSubjects[event['event_type']]   .next(event['data']);
-  }
-  getSubject(event_type) {
-    this.createIfNotExist(event_type);
-    return this.eventSubjects[event_type];
-  }
-  sendEvent(event: WSEvent) {
+  sendEvent(event: AppEvent) {
     this.ws.next(event);
   }
 
