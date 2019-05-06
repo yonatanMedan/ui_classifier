@@ -13,20 +13,20 @@ from WSEvents.WSEventEmitter import  WSEventEmitter
 from classifier.Learner import Learner
 import asyncio
 app = Sanic()
-
 async def handleFolder(emitter,folder):
   learner = Learner.from_folder(folder)
-  await emitter.ws.send("dataset created")
+  print("dataset_created")
+  await emitter.send("dataset_created","None")
   return learner
 
 async def train_stage_1(emitter,learner:Learner):
   learner.train_start(1)
-  await emitter.ws.send("train_stage_1")
+  await emitter.send("train_stage_1")
   return learner
 
 async def train_stage_2(emitter,learner:Learner):
   learner.train_unfreezed(1)
-  await emitter.ws.send("train_stage_2")
+  await emitter.send("train_stage_2")
   return learner
 
 

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import {ElectronService} from "../../providers/electron.service";
-import {SanicService} from "../../providers/sanic.service";
+import {ElectronService} from '../../providers/electron.service';
+import {SanicService, WSEvent} from '../../providers/sanic.service';
+import { Subject } from 'rxjs';
+const { mergeMap }  = window.require('rxjs/operators');
 
 @Component({
   selector: 'app-home',
@@ -9,35 +11,47 @@ import {SanicService} from "../../providers/sanic.service";
 })
 export class HomeComponent implements OnInit {
 
-  classesDir;
-  training=false;
-  constructor(public electronService: ElectronService,public sanic:SanicService) { }
-  addClassDir(){
-    var {dialog} = this.electronService.remote;
-    var path = dialog.showOpenDialog({
-      properties:["openDirectory"]
-    })
-    this.classesDir  = path[0]
+  classesDir: string;
+  training = false;
+  classDirChangeSubject = new Subject();
+  datasetCreatedDataSet = new Subject();
+  ws;
+  constructor(public electronService: ElectronService, public sanic: SanicService) { }
+  addClassDir() {
+    let {dialog} = this.electronService.remote;
+    let path = dialog.showOpenDialog({
+      properties: ['openDirectory']
+    });
+    this.classesDir  = path[0];
+    this.classDirChangeSubject.next(path[0]);
   }
-  train(){
-    this.training=true;
-    let ws = this.sanic.connect();
-    ws.on('open', ()=> {
-      ws.send(JSON.stringify({event_type:"dataset_folder",data:this.classesDir}));
-    });
+  train() {
+    this.training = true;
 
-    ws.on('message', (data) => {
-      debugger;
-      console.log(data);
-      alert(data)
+
+  }
+  // connect(){
+  //   this. ws = this.sanic.connect();
+  //   return new Promise((resolve, reject) => {
+  //     this.ws.on('open', () => {
+  //       resolve();
+  //     });
+  //   });
+  // }
+  initPipeLine() {
+    this.classDirChangeSubject.pipe(
+      mergeMap((folder: string) => {
+        this.sanic.sendEvent(new WSEvent('dataset_folder', folder));
+        return this.sanic.getSubject('dataset_created');
+      })
+    ).subscribe(event => {
+      console.log(event);
+      alert(event);
     });
-    // console.log()
-    //   .then(res=>{
-    //   alert(res)
-    // });
 
   }
   ngOnInit() {
+    this.initPipeLine()
   }
 
 }
