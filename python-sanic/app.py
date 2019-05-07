@@ -29,6 +29,13 @@ async def train_stage_2(emitter,learner:Learner):
   await emitter.send("train_stage_2")
   return learner
 
+async def predict(emitter,learner,img_path):
+  print(img_path)
+  prediction = learner.predict(img_path)
+  await emitter.send("photo_predictions",prediction)
+  return prediction
+
+
 
 def to_observable(corutin):
   return from_future(asyncio.create_task(corutin))
@@ -40,8 +47,8 @@ async def train(request,ws):
   dataSetFolderSubject = emitter.get_subject("dataset_folder")
   trainFirstStage = emitter.get_subject("train_stage_1")
   trainUnfreezed = emitter.get_subject("train_unfreezed")
-
-  dataSetFolderSubject.pipe(
+  predict_one_obs = emitter.get_subject("predict_one")
+  trained_obs = dataSetFolderSubject.pipe(
     ops.flat_map(
       lambda folder:
         to_observable(handleFolder(emitter,folder))
@@ -53,14 +60,24 @@ async def train(request,ws):
     ops.flat_map(
       lambda event:
         to_observable(train_stage_1(emitter,contex["learner"]))
+    )
+    # ops.flat_map(
+    #   lambda learner:
+    #     trainUnfreezed
+    # ),
+    # ops.flat_map(
+    #   lambda event:
+    #     to_observable(train_stage_2(emitter,contex["learner"]))
+    # )
+  )
+  trained_obs.pipe(
+    ops.flat_map(
+      lambda x:
+        predict_one_obs
     ),
     ops.flat_map(
-      lambda learner:
-        trainUnfreezed
-    ),
-    ops.flat_map(
-      lambda event:
-        to_observable(train_stage_2(emitter,contex["learner"]))
+      lambda img_path:
+        to_observable(predict(emitter,contex["learner"],img_path))
     )
   ).subscribe(lambda x: print("hello"),scheduler=scheduler)
   await emitter.start_event_loop()

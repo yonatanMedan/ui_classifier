@@ -26,6 +26,12 @@
       </div>
     </div>
     <div class="row">
+      <div class="col-6" *ngIf="photo_predictions">
+        Prediction: {{photo_predictions["prediction"]}} <br>
+        Probability: {{photo_predictions["prob"]}}
+      </div>
+    </div>
+    <div class="row">
       <div class="col-12"></div>
       {{classesDir}}
       <div class="train" *ngIf="training">

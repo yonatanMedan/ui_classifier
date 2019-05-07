@@ -1,7 +1,8 @@
 
 from .train import get_learner
 from .dataset import create_data_bunch
-from fastai.vision import ImageDataBunch
+from fastai.vision import ImageDataBunch,open_image
+import pdb
 class Learner:
     def __init__(self,dataBunch:ImageDataBunch,get_learner_func=None):
         self.data = dataBunch
@@ -27,5 +28,12 @@ class Learner:
 
     def save(self,name="model"):
         self.learner.save(name)
-    
+
+    def predict(self,img_path):
+        img = open_image(img_path)
+        pred = self.learner.predict(img)
+        return {
+            "prediction":str(pred[0]),
+            "prob":float(pred[2][pred[1]])
+        }
 
