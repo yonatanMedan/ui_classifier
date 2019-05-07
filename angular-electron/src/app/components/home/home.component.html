@@ -17,6 +17,14 @@
         <button (click)="train_1()" *ngIf="dataSetCreated">Train Stage 1 (Freezed layers)</button>
       </div>
     </div>
+    <div class="row" *ngIf="train_1st_stage">
+      <div class="col-6">
+        <button (click)="predictOnePhoto()">Predict Photo</button>
+      </div>
+      <div class="col-6" *ngIf="photoSrc">
+        <img [src]="photoSrc">
+      </div>
+    </div>
     <div class="row">
       <div class="col-12"></div>
       {{classesDir}}
