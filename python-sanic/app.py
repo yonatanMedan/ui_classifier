@@ -19,12 +19,13 @@ async def handleFolder(emitter,folder):
   await emitter.send("dataset_created","dataset_created")
   return learner
 
-async def train_stage_1(emitter,learner:Learner):
+async def train_stage_1(event,emitter,contex):
+  learner = contex["learner"]
   learner.train_start(1)
   await emitter.send("train_stage_1","train stage 1")
   return learner
 
-async def train_stage_2(emitter,learner:Learner):
+async def train_stage_2(emitter,learner):
   learner.train_unfreezed(1)
   await emitter.send("train_unfreezed")
   return learner
@@ -39,6 +40,10 @@ async def predict(emitter,learner,img_path):
 
 def to_observable(corutin):
   return from_future(asyncio.create_task(corutin))
+
+def async_switch_map(corutin,*args,**kwargs):
+  return ops.flat_map_latest(lambda event:to_observable(corutin(event,*args,**kwargs)))
+
 @app.websocket('/train')
 async def train(request,ws):
   contex = {}
@@ -57,10 +62,8 @@ async def train(request,ws):
     ops.flat_map_latest(lambda event:
         trainFirstStage
     ),
-    ops.flat_map_latest(
-      lambda event:
-        to_observable(train_stage_1(emitter,contex["learner"]))
-    ),
+    async_switch_map(train_stage_1,emitter,contex),
+
     ops.share()
     # ops.flat_map(
     #   lambda learner:
