@@ -37,7 +37,7 @@ export class HomeComponent implements OnInit {
     const path = dialog.showOpenDialog({
       properties: ['openFile']
     });
-    if(path){
+    if (path) {
       const fs = this.electronService.remote.require('fs');
       const _img = fs.readFileSync(path[0]).toString('base64');
       this.photoSrc = 'data:image/png;base64,' + _img;
@@ -45,6 +45,9 @@ export class HomeComponent implements OnInit {
       this.UIEvents.emitEvent(new AppEvent('predict_one', this.photoUrl));
     }
 
+  }
+  train_unfreezed() {
+    this.UIEvents.getSubject('train_unfreezed').next();
   }
   train_1() {
     this.training = true;
@@ -60,8 +63,8 @@ export class HomeComponent implements OnInit {
   //   });
   // }
   initPipeLine() {
-    console.log("initPipeLine")
-    this.UIEvents.getSubject('classDirChange').pipe(
+    console.log('initPipeLine');
+    const train$ = this.UIEvents.getSubject('classDirChange').pipe(
       switchMap((folder: string) => {
         this.sanic.sendEvent(new AppEvent('dataset_folder', folder));
         return this.sanic.getSubject('dataset_created');
@@ -77,24 +80,39 @@ export class HomeComponent implements OnInit {
       tap(() => {
         this.train_1st_stage = true;
       }),
+      share()
+
+    );
+    train$.pipe(
+      switchMap(() => {
+        return this.UIEvents.getSubject('train_unfreezed');
+      }),
+      switchMap(() => {
+        this.sanic.sendEvent(new AppEvent('train_unfreezed', {}));
+        return this.sanic.getSubject('train_unfreezed');
+      })
+    ).subscribe(data => {
+      console.log('train_unfreezed');
+    });
+
+    train$.pipe(
       switchMap(() => {
         return this.UIEvents.getSubject('predict_one');
       }),
       switchMap((photo_url) => {
-        console.log("photo_url to predict");
+        console.log('photo_url to predict');
         console.log(photo_url);
         this.sanic.sendEvent(new AppEvent('predict_one' , photo_url));
         return this.sanic.getSubject('photo_predictions');
       }),
       tap(predictions => {
-        console.log("got prediction event from sanic");
+        console.log('got prediction event from sanic');
         this.photo_predictions = predictions;
       })
-    
     ).subscribe(data => {
       console.log(data);
-      alert(data);
     });
+
 
   }
   ngOnInit() {

@@ -19,6 +19,11 @@
     </div>
     <div class="row" *ngIf="train_1st_stage">
       <div class="col-6">
+        <button (click)="train_unfreezed()">Train Unfreezed</button>
+      </div>
+    </div>
+    <div class="row" *ngIf="train_1st_stage">
+      <div class="col-6">
         <button (click)="predictOnePhoto()">Predict Photo</button>
       </div>
       <div class="col-6" *ngIf="photoSrc">

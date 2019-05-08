@@ -26,7 +26,7 @@ async def train_stage_1(emitter,learner:Learner):
 
 async def train_stage_2(emitter,learner:Learner):
   learner.train_unfreezed(1)
-  await emitter.send("train_stage_2")
+  await emitter.send("train_unfreezed")
   return learner
 
 async def predict(emitter,learner,img_path):
@@ -60,7 +60,8 @@ async def train(request,ws):
     ops.flat_map_latest(
       lambda event:
         to_observable(train_stage_1(emitter,contex["learner"]))
-    )
+    ),
+    ops.share()
     # ops.flat_map(
     #   lambda learner:
     #     trainUnfreezed
@@ -70,6 +71,19 @@ async def train(request,ws):
     #     to_observable(train_stage_2(emitter,contex["learner"]))
     # )
   )
+  ##listen to train unfreezed
+  trained_obs.pipe(
+    ops.flat_map_latest(
+      lambda x:
+        trainUnfreezed
+    ),
+    ops.flat_map_latest(
+      lambda x:
+        to_observable(train_stage_2(emitter,contex["learner"]))
+    )
+  ).subscribe(lambda x: print("train_unfreezed"),scheduler=scheduler)
+
+  ##listen to train predict
   trained_obs.pipe(
     ops.flat_map_latest(
       lambda x:
