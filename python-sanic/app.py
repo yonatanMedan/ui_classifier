@@ -49,15 +49,15 @@ async def train(request,ws):
   trainUnfreezed = emitter.get_subject("train_unfreezed")
   predict_one_obs = emitter.get_subject("predict_one")
   trained_obs = dataSetFolderSubject.pipe(
-    ops.flat_map(
+    ops.flat_map_latest(
       lambda folder:
         to_observable(handleFolder(emitter,folder))
     ),
     ops.do_action(lambda learner:contex.__setitem__("learner",learner)),
-    ops.flat_map(lambda event:
+    ops.flat_map_latest(lambda event:
         trainFirstStage
     ),
-    ops.flat_map(
+    ops.flat_map_latest(
       lambda event:
         to_observable(train_stage_1(emitter,contex["learner"]))
     )
@@ -71,11 +71,11 @@ async def train(request,ws):
     # )
   )
   trained_obs.pipe(
-    ops.flat_map(
+    ops.flat_map_latest(
       lambda x:
         predict_one_obs
     ),
-    ops.flat_map(
+    ops.flat_map_latest(
       lambda img_path:
         to_observable(predict(emitter,contex["learner"],img_path))
     )

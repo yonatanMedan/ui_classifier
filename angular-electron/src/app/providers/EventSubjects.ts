@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import {map, filter} from 'rxjs/operators';
+import {map, filter, share} from 'rxjs/operators';
 import {webSocket} from 'rxjs/webSocket';
 export class AppEvent {
   constructor(event_type: string, data: any) {
@@ -20,7 +20,7 @@ export class EventSubjects {
   }
   emitEvent(event: AppEvent) {
     this.createIfNotExist(event.event_type);
-    this.eventSubjects[event['event_type']]   .next(event['data']);
+    this.eventSubjects[event['event_type']].next(event['data']);
   }
   getSubject(event_type) {
     this.createIfNotExist(event_type);
