@@ -10,21 +10,22 @@
     </div>
     <div class="row">
       <div class="col-6">
-        <button (click)="addClassDir()">Choose Data Directory</button>
-
+          <div class="btn-group" role="group" aria-label="Basic example">
+            <button class="btn btn-secondary" (click)="addClassDir()">Choose Data Directory</button>
+            <button class="btn btn-secondary" (click)="train_1()" *ngIf="dataSetCreated">Train Stage 1 (Freezed layers)</button>
+            <button class="btn btn-secondary" (click)="train_unfreezed()"*ngIf="train_1st_stage" >Train Unfreezed</button>
+            <button class="btn btn-secondary" (click)="predictOnePhoto()" *ngIf="train_1st_stage">Predict Photo</button>
+          </div>
       </div>
       <div class="col-6">
-        <button (click)="train_1()" *ngIf="dataSetCreated">Train Stage 1 (Freezed layers)</button>
-      </div>
-    </div>
-    <div class="row" *ngIf="train_1st_stage">
-      <div class="col-6">
-        <button (click)="train_unfreezed()">Train Unfreezed</button>
       </div>
     </div>
-    <div class="row" *ngIf="train_1st_stage">
+    <div class="row" >
       <div class="col-6">
-        <button (click)="predictOnePhoto()">Predict Photo</button>
+      </div>
+    </div>
+    <div class="row" >
+      <div class="col-6">
       </div>
       <div class="col-6" *ngIf="photoSrc">
         <img [src]="photoSrc">
