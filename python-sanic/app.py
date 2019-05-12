@@ -51,36 +51,6 @@ def async_switch_map(corutin,*args,**kwargs):
 async def train(request,ws):
   controller = LearnerController(ws)
   await controller.start_init_chains()
-  # contex = {}
-  # # scheduler = AsyncIOScheduler()
-  # emitter = WSEventEmitter(ws)
-  # dataSetFolderSubject = emitter.get_subject("dataset_folder")
-  # trainFirstStage = emitter.get_subject("train_stage_1")
-  # trainUnfreezed = emitter.get_subject("train_unfreezed")
-  # predict_one_obs = emitter.get_subject("predict_one")
-  # ## listen to data folder and create dataset plut enable
-  # trained_obs = dataSetFolderSubject.pipe(
-  #   async_switch_map(handleFolder,emitter),
-  #   ops.do_action(lambda learner:contex.__setitem__("learner",learner)),
-  #   ops.flat_map_latest(lambda event:trainFirstStage),
-  #   async_switch_map(train_stage_1,emitter,contex),
-  #   ops.share()
-  # )
-  # ##listen to train unfreezed
-  # trained_obs.pipe(
-  #   ops.flat_map_latest(lambda x:trainUnfreezed),
-  #   async_switch_map(train_stage_2,emitter,contex)
-  # ).subscribe(lambda x: print("trained_unfreezed"))
-
-  # ##listen to train predict
-  # trained_obs.pipe(
-  #   ops.flat_map_latest(
-  #     lambda x:
-  #       predict_one_obs
-  #   ),
-  #   async_switch_map(predict,emitter,contex)
-  # ).subscribe(lambda x: print("predicted"))
-  # await emitter.start_event_loop()
 
 
 if __name__ == '__main__':
