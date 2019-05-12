@@ -13,7 +13,7 @@ from WSEvents.WSEventEmitter import  WSEventEmitter
 from classifier.Learner import Learner
 import asyncio
 app = Sanic()
-async def handleFolder(emitter,folder):
+async def handleFolder(folder,emitter):
   learner = Learner.from_folder(folder)
   print("dataset_created")
   await emitter.send("dataset_created","dataset_created")
@@ -25,12 +25,14 @@ async def train_stage_1(event,emitter,contex):
   await emitter.send("train_stage_1","train stage 1")
   return learner
 
-async def train_stage_2(emitter,learner):
+async def train_stage_2(event,emitter,contex):
+  learner = contex["learner"]
   learner.train_unfreezed(1)
   await emitter.send("train_unfreezed")
   return learner
 
-async def predict(emitter,learner,img_path):
+async def predict(img_path,emitter,contex):
+  learner = contex["learner"]
   print(img_path)
   prediction = learner.predict(img_path)
   await emitter.send("photo_predictions",prediction)
@@ -53,38 +55,19 @@ async def train(request,ws):
   trainFirstStage = emitter.get_subject("train_stage_1")
   trainUnfreezed = emitter.get_subject("train_unfreezed")
   predict_one_obs = emitter.get_subject("predict_one")
+  ## listen to data folder and create dataset plut enable train
   trained_obs = dataSetFolderSubject.pipe(
-    ops.flat_map_latest(
-      lambda folder:
-        to_observable(handleFolder(emitter,folder))
-    ),
+    async_switch_map(handleFolder,emitter),
     ops.do_action(lambda learner:contex.__setitem__("learner",learner)),
-    ops.flat_map_latest(lambda event:
-        trainFirstStage
-    ),
+    ops.flat_map_latest(lambda event:trainFirstStage),
     async_switch_map(train_stage_1,emitter,contex),
-
     ops.share()
-    # ops.flat_map(
-    #   lambda learner:
-    #     trainUnfreezed
-    # ),
-    # ops.flat_map(
-    #   lambda event:
-    #     to_observable(train_stage_2(emitter,contex["learner"]))
-    # )
   )
   ##listen to train unfreezed
   trained_obs.pipe(
-    ops.flat_map_latest(
-      lambda x:
-        trainUnfreezed
-    ),
-    ops.flat_map_latest(
-      lambda x:
-        to_observable(train_stage_2(emitter,contex["learner"]))
-    )
-  ).subscribe(lambda x: print("train_unfreezed"),scheduler=scheduler)
+    ops.flat_map_latest(lambda x:trainUnfreezed),
+    async_switch_map(train_stage_2,emitter,contex)
+  ).subscribe(lambda x: print("trained_unfreezed"),scheduler=scheduler)
 
   ##listen to train predict
   trained_obs.pipe(
@@ -92,22 +75,10 @@ async def train(request,ws):
       lambda x:
         predict_one_obs
     ),
-    ops.flat_map_latest(
-      lambda img_path:
-        to_observable(predict(emitter,contex["learner"],img_path))
-    )
-  ).subscribe(lambda x: print("hello"),scheduler=scheduler)
+    async_switch_map(predict,emitter,contex)
+  ).subscribe(lambda x: print("predicted"),scheduler=scheduler)
   await emitter.start_event_loop()
 
-  #while True:
-  #  socket_event = await ws.recv()
-  #  emitter.emit(event_type,data)
-  #  print(data)
-  #  dataBunch = create_dataset(data)
-  #  learn = get_model(dataBunch)
-  #  learn.fit(1)
-  #  dataBunch.show_batch(rows=3, figsize=(7, 8))
-  #  await ws.send("dataset created")
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000, protocol=WebSocketProtocol)
