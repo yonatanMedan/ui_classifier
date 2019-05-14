@@ -1,7 +1,9 @@
 
-from .train import get_learner
+from .train import get_learner,ProgressCallback
 from .dataset import create_data_bunch
 from fastai.vision import ImageDataBunch,open_image
+from rx.subjects import Subject
+
 import pdb
 class Learner:
     def __init__(self,dataBunch:ImageDataBunch,get_learner_func=None):
@@ -10,6 +12,7 @@ class Learner:
             get_learner_func = get_learner
 
         self.learner = get_learner_func(self.data)
+        self.batch_end_subject = Subject()
 
     @classmethod
     def from_folder(cls,folder):
@@ -18,7 +21,7 @@ class Learner:
 
     def train_start(self,n=1):
         self.learner.freeze()
-        self.learner.fit_one_cycle(n)
+        self.learner.fit_one_cycle(n,callbacks=[ProgressCallback(self.batch_end_subject)])
         self.save('stage1')
 
     def train_unfreezed(self,n=1):
