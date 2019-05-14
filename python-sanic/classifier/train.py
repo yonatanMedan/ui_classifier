@@ -3,10 +3,10 @@ from fastai.basic_train import LearnerCallback,dataclass,nn
 from rx.subjects import Subject
 @dataclass
 class ProgressCallback(LearnerCallback):
-    subject:Subject
+    batch_end_subject:Subject
     def on_batch_end(self, **kwargs):
         print("batch end")
-        self.subject.on_next("batch end")
+        self.batch_end_subject.on_next("batch end")
 
 def get_learner(data):
   return cnn_learner(data, models.resnet34,metrics=[error_rate,accuracy])

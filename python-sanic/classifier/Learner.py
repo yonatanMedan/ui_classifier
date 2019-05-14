@@ -21,7 +21,7 @@ class Learner:
 
     def train_start(self,n=1):
         self.learner.freeze()
-        self.learner.fit_one_cycle(n,callbacks=[ProgressCallback(self.batch_end_subject)])
+        self.learner.fit_one_cycle(n,callbacks=[ProgressCallback(batch_end_subject=self.batch_end_subject)])
         self.save('stage1')
 
     def train_unfreezed(self,n=1):
