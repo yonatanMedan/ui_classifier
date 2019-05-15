@@ -1,27 +1,30 @@
 
-from .train import get_learner,ProgressCallback
+from .train import get_learner,EventSubjects
 from .dataset import create_data_bunch
 from fastai.vision import ImageDataBunch,open_image
 from rx.subjects import Subject
-
+from functools import partial
+from fastai.callbacks.tensorboard import LearnerTensorboardWriter
 import pdb
 class Learner:
-    def __init__(self,dataBunch:ImageDataBunch,get_learner_func=None):
+    def __init__(self,dataBunch:ImageDataBunch,get_learner_func=None,emitter=None):
         self.data = dataBunch
         if get_learner_func is None:
             get_learner_func = get_learner
 
         self.learner = get_learner_func(self.data)
+        self.learner.callback_fns.append(partial(LearnerTensorboardWriter, base_dir=self.data.path, name='UIlearner'))
+        self.learner.callback_fns.append(partial(EventSubjects,emitter))
         self.batch_end_subject = Subject()
 
     @classmethod
-    def from_folder(cls,folder):
+    def from_folder(cls,folder,emitter=None):
         dataBunch = create_data_bunch(folder)
-        return cls(dataBunch)
+        return cls(dataBunch,emitter=emitter)
 
     def train_start(self,n=1):
         self.learner.freeze()
-        self.learner.fit_one_cycle(n,callbacks=[ProgressCallback(batch_end_subject=self.batch_end_subject)])
+        self.learner.fit_one_cycle(n)
         self.save('stage1')
 
     def train_unfreezed(self,n=1):

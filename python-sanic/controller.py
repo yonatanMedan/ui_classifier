@@ -4,6 +4,8 @@ from rx.subjects import Subject
 # from rx.concurrency.mainloopscheduler import AsyncIOScheduler
 from rx import operators as ops
 from rx import from_future
+from asgiref.sync import sync_to_async
+
 import asyncio
 def to_observable(corutin):
     return from_future(asyncio.create_task(corutin))
@@ -55,13 +57,14 @@ class LearnerController:
         await self.emitter.start_event_loop()
 
     async def handleFolder(self,folder):
-        self.learner = Learner.from_folder(folder)
+        self.learner = Learner.from_folder(folder,self.emitter)
         print("dataset_created")
         await self.emitter.send("dataset_created","dataset_created")
         return self.learner
 
     async def train_stage_1(self,event):
         self.learner.train_start(1)
+        # self.learner.train_start(1)
         await self.emitter.send("train_stage_1","train stage 1")
         return self.learner
 
